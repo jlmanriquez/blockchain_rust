@@ -54,8 +54,6 @@ impl Block {
                 break;
             }
         }
-
-        println!("Block mined: {}", self.hash);
     }
 
     fn calculate_hash(&mut self) {

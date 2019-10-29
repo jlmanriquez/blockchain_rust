@@ -1,4 +1,5 @@
 use crate::block::Block;
+use std::vec::IntoIter;
 
 pub struct Blockchain {
     difficulty: u32,
@@ -25,4 +26,8 @@ impl Blockchain {
     }
 
     pub fn get_size(&self) -> usize { self.chain.len() }
+
+    pub fn iter(&self) -> &[Block] {
+        self.chain.as_slice()
+    }
 }

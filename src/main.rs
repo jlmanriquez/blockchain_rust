@@ -48,7 +48,10 @@ fn show_menu(b_chain: &mut Blockchain) -> Result<(), Error> {
             add_block(b_chain);
             show_menu(b_chain);
         },
-        "2" => { println!("Show all blockchain"); },
+        "2" => {
+            show_blockchain(b_chain);
+            show_menu(b_chain);
+        },
         "3" => (),
         _ => { show_menu(b_chain); },
     }
@@ -67,4 +70,10 @@ fn add_block(b_chain: &mut Blockchain) {
     stdin().read_line(data);
 
     b_chain.add_block(Block::new(index as u32, data.as_str()));
+}
+
+fn show_blockchain(b_chain: &Blockchain) {
+    for b in b_chain.iter() {
+        println!("{}", b.get_hash());
+    }
 }
