@@ -16,7 +16,7 @@ fn main() {
             .long("difficulty")
             .value_name("difficulty")
             .help("Difficulty use for mine block. Default value is 3")
-            .required(true)
+            .required(false)
             .takes_value(true))
         .get_matches();
 
