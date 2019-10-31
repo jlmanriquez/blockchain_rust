@@ -60,16 +60,13 @@ fn show_menu(b_chain: &mut Blockchain) -> Result<(), Error> {
 }
 
 fn add_block(b_chain: &mut Blockchain) {
-    let index = b_chain.get_size();
-
     print!("\nEnter data: ");
-
     stdout().flush().unwrap();
 
     let data = &mut String::new();
     stdin().read_line(data);
 
-    b_chain.add_block(Block::new(index as u32, data.as_str()));
+    b_chain.add_block(data.as_str());
 }
 
 fn show_blockchain(b_chain: &Blockchain) {

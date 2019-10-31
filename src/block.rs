@@ -12,10 +12,27 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(index: u32, data: &str) -> Self {
+    pub fn new(data: &str) -> Self {
         let mut b = Block {
             prev_hash: String::from(""),
-            index,
+            index: 0,
+            nonce: -1,
+            data: String::from(data),
+            hash: String::from(""),
+            timestamp: SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
+        };
+
+        b.calculate_hash();
+        b
+    }
+
+    pub fn new_from_prev(prev: &Block, data: &str) -> Self {
+        let mut b = Block {
+            prev_hash: prev.hash.clone(),
+            index: prev.index + 1,
             nonce: -1,
             data: String::from(data),
             hash: String::from(""),
@@ -31,10 +48,6 @@ impl Block {
 
     pub fn get_hash(&self) -> &str {
        &self.hash[..]
-    }
-
-    pub fn set_prev_hash(&mut self, h: &str) {
-        self.prev_hash = String::from(h);
     }
 
     pub fn mine_block(&mut self, difficulty: u32) {
