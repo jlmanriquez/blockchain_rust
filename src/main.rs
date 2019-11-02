@@ -1,4 +1,4 @@
-3use crate::blockchain::Blockchain;
+use crate::blockchain::Blockchain;
 use clap::{App, Arg};
 use std::io::{stdin, stdout, Error, Write};
 
