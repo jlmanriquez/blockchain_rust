@@ -1,5 +1,4 @@
-use crate::block::Block;
-use crate::blockchain::Blockchain;
+3use crate::blockchain::Blockchain;
 use clap::{App, Arg};
 use std::io::{stdin, stdout, Error, Write};
 
@@ -46,14 +45,14 @@ fn show_menu(b_chain: &mut Blockchain) -> Result<(), Error> {
     match option.trim() {
         "1" => {
             add_block(b_chain);
-            show_menu(b_chain);
+            show_menu(b_chain).unwrap();
         },
         "2" => {
             show_blockchain(b_chain);
-            show_menu(b_chain);
+            show_menu(b_chain).unwrap();
         },
         "3" => (),
-        _ => { show_menu(b_chain); },
+        _ => { show_menu(b_chain).unwrap(); },
     }
 
     Ok(())
@@ -64,7 +63,7 @@ fn add_block(b_chain: &mut Blockchain) {
     stdout().flush().unwrap();
 
     let data = &mut String::new();
-    stdin().read_line(data);
+    stdin().read_line(data).unwrap();
 
     b_chain.add_block(data.as_str());
 }

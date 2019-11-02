@@ -1,5 +1,4 @@
 use crate::block::Block;
-use std::vec::IntoIter;
 
 pub struct Blockchain {
     difficulty: u32,
