@@ -69,7 +69,7 @@ fn add_block(b_chain: &mut Blockchain) {
 }
 
 fn show_blockchain(b_chain: &Blockchain) {
-    for b in b_chain.iter() {
+    b_chain.iter(|b| {
         println!("{}", b.get_hash());
-    }
+    })
 }
