@@ -1,6 +1,9 @@
 use crate::blockchain::Blockchain;
 use clap::{App, Arg};
-use std::io::{stdin, stdout, Error, Write};
+use iron::{Iron, Request, Response, status};
+use iron::mime::{Mime};
+use router::{Router};
+use std::sync::{Arc, Mutex};
 
 mod block;
 mod blockchain;
@@ -24,52 +27,23 @@ fn main() {
         .parse::<u32>()
         .unwrap();
 
-    let mut b_chain = Blockchain::new(difficulty);
+    let repo = Arc::new(Mutex::new(Blockchain::new(difficulty)));
+    let mut router = Router::new();
 
-    show_menu(&mut b_chain).unwrap();
-}
+    router.post("/block/:data", move |req: &mut Request| {
+        let repo_cloned = repo.clone();
+        let data = req.extensions.get::<Router>().unwrap().find("data").unwrap_or("");
 
-fn show_menu(b_chain: &mut Blockchain) -> Result<(), Error> {
-    println!("---------------------");
-    println!("Options:");
-    println!("1. Add block");
-    println!("2. Show Blockchain");
-    println!("3. Exit");
-    print!("> ");
+        let mut blockchain = repo_cloned.lock().unwrap();
+        blockchain.add_block(data);
 
-    stdout().flush().unwrap();
+        let content_type = "application/json".parse::<Mime>().unwrap();
 
-    let option = &mut String::new();
-    stdin().read_line(option)?;
+        Ok(Response::with(
+            (content_type,
+             status::Ok,
+             serde_json::to_string(blockchain.get_last()).unwrap())))
+    }, "addBlock");
 
-    match option.trim() {
-        "1" => {
-            add_block(b_chain);
-            show_menu(b_chain).unwrap();
-        },
-        "2" => {
-            show_blockchain(b_chain);
-            show_menu(b_chain).unwrap();
-        },
-        "3" => (),
-        _ => { show_menu(b_chain).unwrap(); },
-    }
-
-    Ok(())
-}
-
-fn add_block(b_chain: &mut Blockchain) {
-    print!("\nEnter data: ");
-    stdout().flush().unwrap();
-
-    let data = &mut String::new();
-    stdin().read_line(data).unwrap();
-
-    b_chain.add_block(data.as_str());
-}
-
-fn show_blockchain(b_chain: &Blockchain) {
-    b_chain.iter(|b| {
-        println!("{}", b.get_hash());
-    })
+    Iron::new(router).http("localhost:3000").unwrap();
 }

@@ -1,7 +1,8 @@
 use std::time::{SystemTime};
 use crypto_hash::{Algorithm, hex_digest};
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
     prev_hash: String,
     index: u32,
@@ -44,10 +45,6 @@ impl Block {
 
         b.calculate_hash();
         b
-    }
-
-    pub fn get_hash(&self) -> &str {
-       &self.hash[..]
     }
 
     pub fn mine_block(&mut self, difficulty: u32) {
