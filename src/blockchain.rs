@@ -1,5 +1,7 @@
 use crate::block::Block;
+use serde::{Serialize, Deserialize};
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Blockchain {
     difficulty: u32,
     chain: Vec<Block>,
@@ -19,7 +21,7 @@ impl Blockchain {
         self.chain.push(new_block);
     }
 
-    pub fn get_last(&self) -> &Block {
-        self.chain.last().unwrap()
+    pub fn get_block(&self) -> &[Block] {
+        self.chain.as_slice()
     }
 }

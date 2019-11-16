@@ -1,15 +1,21 @@
 use crate::blockchain::Blockchain;
 use clap::{App, Arg};
 use iron::{Iron, Request, Response, status};
-use iron::mime::{Mime};
-use router::{Router};
-use std::sync::{Arc, Mutex};
+use iron::mime::Mime;
+use router::Router;
+use std::sync::{Arc, RwLock};
+use serde::{Serialize, Deserialize};
 
 mod block;
 mod blockchain;
 
+#[derive(Serialize, Deserialize, Debug)]
+struct BlockchainResponse {
+    status: String,
+}
+
 fn main() {
-    let matches = App::new("Blockchain Example")
+    let matches = App::new("Blockhain Example")
         .version("1.0")
         .author("jlmanriquez")
         .about("A blockchain example taking as example an existing implementation in C++")
@@ -27,23 +33,35 @@ fn main() {
         .parse::<u32>()
         .unwrap();
 
-    let repo = Arc::new(Mutex::new(Blockchain::new(difficulty)));
+    let repo = Arc::new(RwLock::new(Blockchain::new(difficulty)));
     let mut router = Router::new();
 
+    let blockchain = Arc::clone(&repo);
+
     router.post("/block/:data", move |req: &mut Request| {
-        let repo_cloned = repo.clone();
         let data = req.extensions.get::<Router>().unwrap().find("data").unwrap_or("");
 
-        let mut blockchain = repo_cloned.lock().unwrap();
+        let mut blockchain = blockchain.write().unwrap();
         blockchain.add_block(data);
 
-        let content_type = "application/json".parse::<Mime>().unwrap();
+        Ok(Response::with(
+            ("application/json".parse::<Mime>().unwrap(),
+             status::Ok,
+             serde_json::to_string(&BlockchainResponse {
+                 status: String::from("Ok"),
+             }).unwrap())))
+    }, "addBlock");
+
+    let blockchain = Arc::clone(&repo);
+
+    router.get("/block", move |_: &mut Request| {
+        let blockchain = blockchain.read().unwrap();
 
         Ok(Response::with(
-            (content_type,
+            ("application/json".parse::<Mime>().unwrap(),
              status::Ok,
-             serde_json::to_string(blockchain.get_last()).unwrap())))
-    }, "addBlock");
+             serde_json::to_string(blockchain.get_block()).unwrap())))
+    }, "showBlockchain");
 
     Iron::new(router).http("localhost:3000").unwrap();
 }
