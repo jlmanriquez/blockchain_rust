@@ -1,13 +1,15 @@
 use crate::blockchain::Blockchain;
 use clap::{App, Arg};
-use iron::{Iron, Request, Response, status};
-use iron::mime::Mime;
 use router::Router;
 use std::sync::{Arc, RwLock};
 use serde::{Serialize, Deserialize};
+use crate::tcpserver::TCPServer;
+use std::io::{Read, Write};
+use std::net::Shutdown;
 
 mod block;
 mod blockchain;
+mod tcpserver;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct BlockchainResponse {
@@ -26,6 +28,13 @@ fn main() {
             .help("Difficulty use for mine block. Default value is 3")
             .required(false)
             .takes_value(true))
+        .arg(Arg::with_name("port")
+            .short("p")
+            .long("port")
+            .value_name("port")
+            .help("Server port")
+            .required(false)
+            .takes_value(true))
         .get_matches();
 
     let difficulty = matches.value_of("difficulty")
@@ -33,35 +42,28 @@ fn main() {
         .parse::<u32>()
         .unwrap();
 
-    let repo = Arc::new(RwLock::new(Blockchain::new(difficulty)));
-    let mut router = Router::new();
+    let port = matches.value_of("port")
+        .unwrap_or("8090");
 
-    let blockchain = Arc::clone(&repo);
+    let repo = RwLock::new(Blockchain::new(difficulty));
+    let server = &mut tcpserver::TCPServer::new(port);
 
-    router.post("/block/:data", move |req: &mut Request| {
-        let data = req.extensions.get::<Router>().unwrap().find("data").unwrap_or("");
-
-        let mut blockchain = blockchain.write().unwrap();
-        blockchain.add_block(data);
-
-        Ok(Response::with(
-            ("application/json".parse::<Mime>().unwrap(),
-             status::Ok,
-             serde_json::to_string(&BlockchainResponse {
-                 status: String::from("Ok"),
-             }).unwrap())))
-    }, "addBlock");
-
-    let blockchain = Arc::clone(&repo);
-
-    router.get("/block", move |_: &mut Request| {
-        let blockchain = blockchain.read().unwrap();
-
-        Ok(Response::with(
-            ("application/json".parse::<Mime>().unwrap(),
-             status::Ok,
-             serde_json::to_string(blockchain.get_block()).unwrap())))
-    }, "showBlockchain");
-
-    Iron::new(router).http("localhost:3000").unwrap();
+    server.on_incoming(move |mut s| {
+            let mut data = [0 as u8; 50];
+            while match s.read(&mut data) {
+                Ok(size) => {
+                    let mut blockchain = repo.write().unwrap();
+                    blockchain.add_block("data");
+                    s.write(&data[0..size]).unwrap();
+                    true
+                }
+                Err(_) => {
+                    println!("An error occurred, terminating connection with {}", s.peer_addr().unwrap());
+                    s.shutdown(Shutdown::Both).unwrap();
+                    false
+                }
+            } {}
+        })
+        .on_error(move |err| {})
+        .run();
 }
