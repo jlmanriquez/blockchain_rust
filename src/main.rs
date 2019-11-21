@@ -49,21 +49,21 @@ fn main() {
     let server = &mut tcpserver::TCPServer::new(port);
 
     server.on_incoming(move |mut s| {
-            let mut data = [0 as u8; 50];
-            while match s.read(&mut data) {
-                Ok(size) => {
-                    let mut blockchain = repo.write().unwrap();
-                    blockchain.add_block("data");
-                    s.write(&data[0..size]).unwrap();
-                    true
-                }
-                Err(_) => {
-                    println!("An error occurred, terminating connection with {}", s.peer_addr().unwrap());
-                    s.shutdown(Shutdown::Both).unwrap();
-                    false
-                }
-            } {}
-        })
+        let mut data = [0 as u8; 50];
+        while match s.read(&mut data) {
+            Ok(size) => {
+                let mut blockchain = repo.write().unwrap();
+                blockchain.add_block("data");
+                s.write(&data[0..size]).unwrap();
+                true
+            }
+            Err(_) => {
+                println!("An error occurred, terminating connection with {}", s.peer_addr().unwrap());
+                s.shutdown(Shutdown::Both).unwrap();
+                false
+            }
+        } {}
+    })
         .on_error(move |err| {})
         .run();
 }
