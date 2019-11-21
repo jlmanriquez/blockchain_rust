@@ -37,7 +37,7 @@ impl TCPServer {
                 Ok(stream) => {
                     println!("New connection: {}", stream.peer_addr().unwrap());
 
-                    let action = Arc::clone(&self.incoming_fn.as_ref().unwrap());
+                    let action = Arc::clone(self.incoming_fn.as_ref().unwrap());
 
                     thread::spawn(move || action(stream));
                 }
