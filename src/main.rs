@@ -50,13 +50,19 @@ fn main() {
 
     server
         .on_incoming(move |mut s| {
-            let mut data = [0 as u8; 50];
+            let mut data = [0 as u8; 5];
             while match s.read(&mut data) {
                 Ok(size) => {
                     let mut blockchain = repo.write().unwrap();
                     blockchain.add_block("data");
+
                     s.write(&data[0..size]).unwrap();
-                    true
+
+                    if size < data.len() {
+                        false
+                    } else {
+                        true
+                    }
                 }
                 Err(_) => {
                     println!("An error occurred, terminating connection with {}", s.peer_addr().unwrap());
