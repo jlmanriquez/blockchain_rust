@@ -6,7 +6,7 @@ use std::thread;
 fn main() {
     let mut all_threads = vec![];
 
-    for id in 0..2 {
+    for id in 0..100 {
         all_threads.push(thread::spawn(move || start_client(id)));
     }
 
@@ -27,17 +27,25 @@ fn start_client(id: i32) {
 
             stream.write(msg.as_bytes()).unwrap();
             stream.flush().unwrap();
-            println!("Sent Hello, awaiting reply...");
-            let mut data = [0 as u8; 7];
-            match stream.read_exact(&mut data) {
-                Ok(_) => {
-                    let text = from_utf8(&data).unwrap();
-                    println!("Reply: {}", text);
+
+            let mut data = [0 as u8; 100];
+            let mut all_text = String::from("");
+            while match stream.read(&mut data) {
+                Ok(size) => {
+                    all_text.push_str(from_utf8(&data).unwrap());
+
+                    if size < data.len() {
+                        println!("Reply: {}", all_text);
+                        false
+                    } else {
+                        true
+                    }
                 },
                 Err(e) => {
                     println!("Failed to receive data: {}", e);
+                    false
                 }
-            }
+            } {}
         },
         Err(e) => {
             println!("Failed to connect: {}", e);
