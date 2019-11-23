@@ -22,7 +22,7 @@ fn start_client(id: i32) {
         Ok(mut stream) => {
             println!("Successfully connected to server in port 8090");
 
-            let mut msg = id.to_string().to_owned();
+            let mut msg = id.to_string();
             msg.push_str("Hello!");
 
             stream.write(msg.as_bytes()).unwrap();
@@ -30,6 +30,7 @@ fn start_client(id: i32) {
 
             let mut data = [0 as u8; 100];
             let mut all_text = String::from("");
+
             while match stream.read(&mut data) {
                 Ok(size) => {
                     all_text.push_str(from_utf8(&data).unwrap());

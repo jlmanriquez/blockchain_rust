@@ -6,6 +6,7 @@ use serde::{Serialize, Deserialize};
 use crate::tcpserver::TCPServer;
 use std::io::{Read, Write};
 use std::net::Shutdown;
+use std::{str};
 
 mod block;
 mod blockchain;
@@ -54,9 +55,12 @@ fn main() {
 
             while match s.read(&mut data) {
                 Ok(size) => {
+                    // Modificar logica para concatenar data de entrada
+                    // y solo cuando se lea completamente la entrada
+                    // se genere el nuevo bloque
                     if size < data.len() {
                         let mut blockchain = repo.write().unwrap();
-                        blockchain.add_block(String::from(&data[0..size]).as_str());
+                        blockchain.add_block(str::from_utf8(&data).unwrap());
 
                         let last_block = blockchain.get_block().last().unwrap();
                         let json = format!("{:?}", last_block);
