@@ -7,6 +7,7 @@ use crate::tcpserver::TCPServer;
 use std::io::{Read, Write};
 use std::net::Shutdown;
 use std::{str};
+use std::str::from_utf8;
 
 mod block;
 mod blockchain;
@@ -52,23 +53,25 @@ fn main() {
     server
         .on_incoming(move |mut s| {
             let mut data = [0 as u8; 50];
+            let mut all_data = String::from("");
 
             while match s.read(&mut data) {
                 Ok(size) => {
-                    // Modificar logica para concatenar data de entrada
-                    // y solo cuando se lea completamente la entrada
-                    // se genere el nuevo bloque
-                    if size < data.len() {
-                        let mut blockchain = repo.write().unwrap();
-                        blockchain.add_block(str::from_utf8(&data).unwrap());
+                    match size {
+                        s if s >= data.len() => {
+                            all_data.push_str(from_utf8(&data[0..size]).unwrap());
+                            true
+                        },
+                        _ => {
+                            let mut blockchain = repo.write().unwrap();
+                            blockchain.add_block(str::from_utf8(&data[0..size]).unwrap());
 
-                        let last_block = blockchain.get_block().last().unwrap();
-                        let json = format!("{:?}", last_block);
+                            let last_block = blockchain.get_block().last().unwrap();
+                            let json = format!("{:?}", last_block);
 
-                        s.write(json.as_bytes()).unwrap();
-                        false
-                    } else {
-                        true
+                            s.write(json.as_bytes()).unwrap();
+                            false
+                        }
                     }
                 },
                 Err(_) => {

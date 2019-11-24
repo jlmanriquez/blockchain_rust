@@ -6,7 +6,7 @@ use std::thread;
 fn main() {
     let mut all_threads = vec![];
 
-    for id in 0..100 {
+    for id in 0..20 {
         all_threads.push(thread::spawn(move || start_client(id)));
     }
 
