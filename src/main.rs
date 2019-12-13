@@ -64,7 +64,7 @@ fn main() {
                         },
                         _ => {
                             let mut blockchain = repo.write().unwrap();
-                            blockchain.add_block(str::from_utf8(&data[0..size]).unwrap());
+                            blockchain.add_block(all_data.as_str());
 
                             let last_block = blockchain.get_block().last().unwrap();
                             let json = format!("{:?}", last_block);
