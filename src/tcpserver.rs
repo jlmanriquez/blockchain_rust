@@ -26,7 +26,7 @@ impl TCPServer {
     }
 
     pub fn on_error<F>(&mut self, f: F) -> &mut Self
-        where F: Fn(Error) + Send + Send + Sync + 'static {
+        where F: Fn(Error) + Send + Sync + 'static {
         self.error_fn = Option::Some(Arc::new(f));
         self
     }
