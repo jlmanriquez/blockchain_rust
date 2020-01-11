@@ -48,7 +48,7 @@ fn main() {
         .unwrap_or("8090");
 
     let repo = RwLock::new(Blockchain::new(difficulty));
-    let server = &mut tcpserver::TCPServer::new(port);
+    let server = &mut TCPServer::new(port);
 
     server
         .on_incoming(move |mut s| {
