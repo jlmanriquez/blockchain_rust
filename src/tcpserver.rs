@@ -40,7 +40,7 @@ impl TCPServer {
                     let action = Arc::clone(self.incoming_fn.as_ref().unwrap());
 
                     thread::spawn(move || action(stream));
-                }
+                },
                 Err(e) => {
                     println!("Error: {}", e);
                 }
