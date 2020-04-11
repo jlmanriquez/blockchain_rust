@@ -1,7 +1,6 @@
 use crate::blockchain::Blockchain;
 use clap::{App, Arg};
-use router::Router;
-use std::sync::{Arc, RwLock};
+use std::sync::{RwLock};
 use serde::{Serialize, Deserialize};
 use crate::tcpserver::TCPServer;
 use std::io::{Read, Write};
@@ -81,6 +80,8 @@ fn main() {
                 }
             } {}
         })
-        .on_error(move |err| {})
+        .on_error(move |err| {
+            println!("Error: {}", err);
+        })
         .run();
 }

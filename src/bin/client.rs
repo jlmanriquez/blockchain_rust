@@ -1,4 +1,4 @@
-use std::net::{TcpStream, Shutdown};
+use std::net::{TcpStream};
 use std::io::{Write, Read};
 use std::str::from_utf8;
 use std::thread;
@@ -11,7 +11,7 @@ fn main() {
     }
 
     for t in all_threads {
-        t.join();
+        t.join().expect("Couldn't join on the associated thread");
     }
 
     println!("Terminated.");

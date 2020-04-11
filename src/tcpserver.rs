@@ -1,13 +1,12 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::Error;
 use std::thread;
-use serde::Serialize;
 use std::sync::Arc;
 
 pub struct TCPServer {
     listener: TcpListener,
     incoming_fn: Option<Arc<dyn Fn(TcpStream) + Send + Sync + 'static>>,
-    error_fn: Option<Arc<dyn Fn(Error) + Send + Sync + 'static>>,
+    error_fn: Option<Box<dyn Fn(Error) + 'static>>,
 }
 
 impl TCPServer {
@@ -26,8 +25,8 @@ impl TCPServer {
     }
 
     pub fn on_error<F>(&mut self, f: F) -> &mut Self
-        where F: Fn(Error) + Send + Sync + 'static {
-        self.error_fn = Option::Some(Arc::new(f));
+        where F: Fn(Error) + 'static {
+        self.error_fn = Option::Some(Box::new(f));
         self
     }
 
@@ -42,7 +41,7 @@ impl TCPServer {
                     thread::spawn(move || action(stream));
                 },
                 Err(e) => {
-                    println!("Error: {}", e);
+                    self.error_fn.as_ref().unwrap()(e);
                 }
             }
         }
