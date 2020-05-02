@@ -80,7 +80,7 @@ fn main() {
                 }
             } {}
         })
-        .on_error(move |err| {
+        .on_error(|err| {
             println!("Error: {}", err);
         })
         .run();
